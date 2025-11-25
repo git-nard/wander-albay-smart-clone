@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Ocean Teal - Primary */
+    --primary: 186 78% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 186 78% 65%;
+    
+    /* Volcanic Coral - Accent */
+    --accent: 14 87% 62%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Nature Green - Secondary */
+    --secondary: 142 76% 36%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Neutrals */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    
+    /* UI Elements */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 186 78% 45%;
+    
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Gradients */
+    --gradient-sunrise: linear-gradient(135deg, hsl(14 87% 62%), hsl(33 100% 60%));
+    --gradient-ocean: linear-gradient(135deg, hsl(186 78% 45%), hsl(199 89% 48%));
+    --gradient-tropical: linear-gradient(135deg, hsl(142 76% 36%), hsl(158 64% 52%));
+    --gradient-hero: linear-gradient(135deg, hsl(186 78% 45% / 0.9), hsl(14 87% 62% / 0.8));
+    
+    /* Shadows */
+    --shadow-glow: 0 10px 40px -10px hsl(186 78% 45% / 0.3);
+    --shadow-soft: 0 4px 24px -4px hsl(222 47% 11% / 0.1);
+    
+    --radius: 0.75rem;
+    
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5% 26%;
+    --sidebar-primary: 186 78% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 186 78% 45%;
+  }
+
+  .dark {
+    --primary: 186 78% 55%;
+    --primary-foreground: 222 47% 11%;
+    --primary-glow: 186 78% 75%;
+    
+    --accent: 14 87% 62%;
+    --accent-foreground: 0 0% 100%;
+    
+    --secondary: 142 76% 46%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 186 78% 55%;
+    
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --shadow-glow: 0 10px 40px -10px hsl(186 78% 55% / 0.4);
+    --shadow-soft: 0 4px 24px -4px hsl(0 0% 0% / 0.3);
+    
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 186 78% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 186 78% 55%;
+
+/* Dropdown, popover, menus */
+[data-radix-popper-content-wrapper] {
+  z-index: 99999 !important;
+}
+
+/* Dialog, AlertDialog, Popover, Drawer, Sheet, etc. */
+[data-radix-portal] {
+  z-index: 99999 !important;
+}
+.leaflet-container {
+  z-index: 1 !important;
+}
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+}
