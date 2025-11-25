@@ -69,6 +69,9 @@ const ManageSpots = () => {
     is_hidden_gem: false,
     rating: 0,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const availableCategories = ["Nature", "Culture", "Adventure", "Food", "Beach", "Heritage"];
   const availableSpotTypes = ["Camping", "Scenic", "Hiking", "Relaxation", "Island Hopping", "Zipline", "Wildlife", "Museum", "Night Market"];
@@ -162,53 +165,126 @@ const ManageSpots = () => {
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return formData.image_url || null;
+
+    setUploadingImage(true);
+    try {
+      // Create unique filename
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `spots/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('spot-images')
+        .upload(filePath, imageFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('spot-images')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error('Image upload error:', error);
+      toast.error('Failed to upload image: ' + error.message);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const spotData = {
-      name: formData.name,
-      description: formData.description || null,
-      location: formData.location,
-      municipality: formData.municipality || null,
-      category: formData.category.length ? formData.category : null,  // Ensure category is either an array or null
-      contact_number: formData.contact_number || null,
-      image_url: formData.image_url || null,
-      rating: formData.rating || 0,
-      is_hidden_gem: formData.is_hidden_gem || false,
-    };
+    try {
+      // Upload image if a new file is selected
+      const imageUrl = await uploadImage();
 
-    const { error } = editingSpot
-      ? await supabase.from("tourist_spots").update(spotData).eq("id", editingSpot.id)
-      : await supabase.from("tourist_spots").insert([spotData]);
+      if (imageFile && !imageUrl) {
+        toast.error('Failed to upload image. Please try again.');
+        setIsLoading(false);
+        return;
+      }
 
-    if (error) toast.error(`Failed to ${editingSpot ? "update" : "add"} spot`);
-    else {
+      const spotData = {
+        name: formData.name,
+        description: formData.description || null,
+        location: formData.location,
+        municipality: formData.municipality || null,
+        category: formData.category.length ? formData.category : null,
+        contact_number: formData.contact_number || null,
+        image_url: imageUrl,
+        rating: formData.rating || 0,
+        is_hidden_gem: formData.is_hidden_gem || false,
+      };
+
+      const { error } = editingSpot
+        ? await supabase.from("tourist_spots").update(spotData).eq("id", editingSpot.id)
+        : await supabase.from("tourist_spots").insert([spotData]);
+
+      if (error) throw error;
+      
       toast.success(`Spot ${editingSpot ? "updated" : "added"} successfully`);
       resetForm();
       fetchSpots();
+    } catch (error: any) {
+      console.error('Submit error:', error);
+      toast.error(`Failed to ${editingSpot ? "update" : "add"} spot: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   // Reactivate handleEdit
   const handleEdit = (spot: TouristSpot) => {
-  setEditingSpot(spot);
-  setFormData({
-    name: spot.name,
-    description: spot.description || "",
-    location: spot.location,
-    municipality: spot.municipality || "",
-    category: spot.category,
-    spot_type: spot.spot_type || [],
-    contact_number: spot.contact_number || "",
-    image_url: spot.image_url || "",
-    is_hidden_gem: spot.is_hidden_gem || false,
-    rating: spot.rating || 0, // Add the rating property
-  });
-  setIsDialogOpen(true);
-};
+    setEditingSpot(spot);
+    setFormData({
+      name: spot.name,
+      description: spot.description || "",
+      location: spot.location,
+      municipality: spot.municipality || "",
+      category: spot.category,
+      spot_type: spot.spot_type || [],
+      contact_number: spot.contact_number || "",
+      image_url: spot.image_url || "",
+      is_hidden_gem: spot.is_hidden_gem || false,
+      rating: spot.rating || 0,
+    });
+    setImagePreview(spot.image_url);
+    setImageFile(null);
+    setIsDialogOpen(true);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -225,6 +301,8 @@ const ManageSpots = () => {
     });
     setEditingSpot(null);
     setBarangays([]);
+    setImageFile(null);
+    setImagePreview(null);
     setIsDialogOpen(false);
   };
 
@@ -333,14 +411,42 @@ const ManageSpots = () => {
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
-                <Label>Image URL</Label>
+                <Label htmlFor="image-upload">Spot Image</Label>
                 <Input
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://..."
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="cursor-pointer"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload an image (max 5MB, JPG/PNG/WEBP)
+                </p>
+                
+                {imagePreview && (
+                  <div className="mt-3 relative">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-full h-48 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                        setFormData({ ...formData, image_url: "" });
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Categories */}
@@ -401,17 +507,17 @@ const ManageSpots = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="submit" disabled={isLoading || formData.category.length === 0}>
-                  {isLoading ? (
+                <Button type="submit" disabled={isLoading || uploadingImage || formData.category.length === 0}>
+                  {isLoading || uploadingImage ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
+                      {uploadingImage ? "Uploading image..." : "Saving..."}
                     </>
                   ) : (
                     <>{editingSpot ? "Update" : "Add"} Spot</>
                   )}
                 </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button type="button" variant="outline" onClick={resetForm} disabled={isLoading || uploadingImage}>
                   Cancel
                 </Button>
               </div>
