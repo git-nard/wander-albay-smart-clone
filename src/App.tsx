@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import MapPage from "./pages/MapPage";
 import SpotsMapPage from "./pages/SpotsMapPage";
 import SpotDetail from "./pages/SpotDetail";
+import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
 import EmergencyHotlines from "./pages/EmergencyHotlinePage";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/spot/:id" element={<SpotDetail />} />
+            <Route path="/favorites" element={<Favorites />} />
             <Route path="/itinerary" element={<Itinerary />} />
             <Route path="/my-itinerary" element={<MyItinerary />} />
             <Route path="/route" element={<RoutePage />} />
