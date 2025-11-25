@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { MapPin, Trash2, Calendar, Sparkles, Edit, RefreshCw } from "lucide-react";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { PostOnboardingSpotSelection } from "@/components/PostOnboardingSpotSelection";
+import { PostOnboardingAccommodationSelection } from "@/components/PostOnboardingAccommodationSelection";
 import RecommendedSpots from "@/components/RecommendedSpots";
 import EventNotifications from "@/components/EventNotifications";
 import NearbyRestaurants from "@/components/NearbyRestaurants";
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showSpotSelection, setShowSpotSelection] = useState(false);
+  const [showAccommodationSelection, setShowAccommodationSelection] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -126,15 +128,27 @@ const Dashboard = () => {
           />
           
           {profile?.user_preferences && (
-            <PostOnboardingSpotSelection
-              open={showSpotSelection}
-              onComplete={() => {
-                setShowSpotSelection(false);
-                fetchProfile(session.user.id);
-              }}
-              userId={session.user.id}
-              preferences={profile.user_preferences}
-            />
+            <>
+              <PostOnboardingSpotSelection
+                open={showSpotSelection}
+                onComplete={() => {
+                  setShowSpotSelection(false);
+                  setShowAccommodationSelection(true);
+                }}
+                userId={session.user.id}
+                preferences={profile.user_preferences}
+              />
+              
+              <PostOnboardingAccommodationSelection
+                open={showAccommodationSelection}
+                onComplete={() => {
+                  setShowAccommodationSelection(false);
+                  fetchProfile(session.user.id);
+                }}
+                userId={session.user.id}
+                preferences={profile.user_preferences}
+              />
+            </>
           )}
         </>
       )}
